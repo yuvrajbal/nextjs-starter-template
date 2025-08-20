@@ -1,103 +1,154 @@
-import Image from "next/image";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Users, Database, Shield, Palette, Smartphone } from "lucide-react";
 
-export default function Home() {
+// Function to check database connection
+async function checkDatabaseConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return { connected: true, error: null }
+  } catch (error) {
+    console.error('Database connection error:', error)
+    return { connected: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+export default async function Home() {
+  const session = await auth()
+  const dbStatus = await checkDatabaseConnection()
+  const features = [
+    {
+      icon: Shield,
+      title: "Authentication",
+      description: "NextAuth.js with Google OAuth, JWT sessions, and Prisma adapter"
+    },
+    {
+      icon: Palette,
+      title: "UI Components",
+      description: "shadcn/ui components with dark/light theme support"
+    },
+    {
+      icon: Database,
+      title: "Database Ready",
+      description: "PostgreSQL with Prisma ORM, migrations, and type safety"
+    },
+    {
+      icon: Smartphone,
+      title: "Responsive Design",
+      description: "Mobile-first design with Tailwind CSS"
+    },
+    {
+      icon: Users,
+      title: "User Management",
+      description: "Complete user profiles, settings, and account management"
+    }
+  ]
+  
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+   <div className="container mx-auto py-8 space-y-8 px-4">
+    {/* Hero Section */}
+    <div className="text-center space-y-4">
+      <h1 className="text-4xl font-bold gradient-text">Welcome to NextTemplate</h1>
+      <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        Hello {session?.user?.name || 'User'}! 👋 You&apos;re using a modern Next.js starter template 
+        with authentication, theming, and all the essentials for your next project.
+      </p>
     </div>
+
+    {/* Stats Cards */}
+    <div className="grid gap-4 md:grid-cols-3">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Account Status</CardTitle>
+          <Shield className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          {session?.user?.email && <div className="text-2xl font-bold text-green-600">Active</div>}
+          {session?.user?.email && <p className="text-xs text-muted-foreground">
+            Signed in with Google
+          </p>}
+         {/* if session is null show not connected */}
+         {!session?.user?.email && <div className="text-2xl font-bold text-red-600">Not Connected</div>}
+         {!session?.user?.email && <p className="text-xs text-muted-foreground">
+            Sign in with Google
+          </p>}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Theme</CardTitle>
+          <Palette className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">System</div>
+          <p className="text-xs text-muted-foreground">
+            Auto dark/light mode
+          </p>
+         
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Database</CardTitle>
+          <Database className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-2xl font-bold ${dbStatus.connected ? 'text-green-600' : 'text-red-600'}`}>
+            {dbStatus.connected ? 'Connected' : 'Not Connected'}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            PostgreSQL with Prisma
+          </p>
+          {!dbStatus.connected && dbStatus.error && (
+            <p className="text-xs text-red-500 mt-1">
+              Error: {dbStatus.error}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+
+    {/* Features Grid */}
+    <div>
+      <h2 className="text-2xl font-bold mb-6">What&apos;s Included</h2>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {features.map((feature, index) => (
+          <Card key={index}>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <feature.icon className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">{feature.title}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>{feature.description}</CardDescription>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+
+    {/* Quick Actions */}
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
+      <div className="flex flex-wrap gap-4">
+        <Button asChild>
+          <Link href="/user">View Profile</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/test-db">Test Database</Link>
+        </Button>
+      
+        <Button variant="secondary" asChild>
+          <Link href="https://github.com/yourusername/nextjs-starter" target="_blank">
+            View on GitHub
+          </Link>
+        </Button>
+      </div>
+    </div>
+   </div>
   );
 }
